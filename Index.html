@@ -28,7 +28,7 @@
 <body>
 
 <div class="container" id="content">
-  <img src="logo.jpeg" alt="Curate My Money Logo" class="logo">
+  <img src="logo.jpeg" alt="Logo" class="logo">
 
   <h2>Investment Recommendation Form</h2>
 
@@ -356,7 +356,6 @@ function loadFundData(riskProfile) {
       const filtered = data.filter(row => row['Risk Profile']?.toLowerCase() === riskProfile.toLowerCase());
       filtered.forEach(fund => {
         const row = `<tr>
-          <td>${fund['Scheme Name']}</td>
           <td>${fund['Allocation %']}</td>
           <td>${fund['Category']}</td>
         </tr>`;
