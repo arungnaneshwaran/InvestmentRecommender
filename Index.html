@@ -215,31 +215,33 @@ function downloadPDF() {
 }
 function submitQuestionnaire() {
   const form = document.getElementById("questionnaireForm");
-  const responses = Array.from(form.querySelectorAll("select")).map(select => select.value);
-  
-  // Basic example scoring logic (you can refine this later)
-  const score = responses.reduce((sum, val) => {
-    const idx = form.querySelectorAll("select")[0].options.namedItem(val)?.index || 0;
-    return sum + idx;
-  }, 0);
+  const selects = form.querySelectorAll("select");
 
+  // Calculate total score by index of selected option (index + 1 = score)
+  let score = 0;
+  selects.forEach(select => {
+    score += select.selectedIndex + 1;
+  });
+
+  // Determine risk profile based on score
   let profile = "";
-  if (score <= 12) profile = "Conservative";
-  else if (score <= 18) profile = "Conservative to Moderate";
-  else if (score <= 25) profile = "Moderate";
-  else if (score <= 32) profile = "Moderate to Aggressive";
-  else profile = "Aggressive";
+  if (score >= 10 && score <= 17) profile = "Conservative";
+  else if (score >= 18 && score <= 25) profile = "Conservative → Moderate";
+  else if (score >= 26 && score <= 34) profile = "Moderate Risk Taker";
+  else if (score >= 35 && score <= 42) profile = "Moderate → Aggressive";
+  else if (score >= 43 && score <= 50) profile = "Aggressive Risk Taker";
 
+  // Set dropdown value and display result message
   document.getElementById("riskProfile").value = profile;
   const resultContainer = document.getElementById("riskProfileResult");
   resultContainer.innerHTML = `
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-      Your assessed risk profile is: <strong>${profile}</strong>
+      Your assessed risk profile is: <strong>${profile}</strong> (Score: ${score})
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>`;
+
   bootstrap.Modal.getInstance(document.getElementById("questionnaireModal")).hide();
-}
-</script>
+}</script>
 
 </body>
 </html>
