@@ -226,10 +226,10 @@ function submitQuestionnaire() {
   // Determine risk profile based on score
   let profile = "";
   if (score >= 10 && score <= 17) profile = "Conservative";
-  else if (score >= 18 && score <= 25) profile = "Conservative → Moderate";
-  else if (score >= 26 && score <= 34) profile = "Moderate Risk Taker";
-  else if (score >= 35 && score <= 42) profile = "Moderate → Aggressive";
-  else if (score >= 43 && score <= 50) profile = "Aggressive Risk Taker";
+  else if (score >= 18 && score <= 25) profile = "Conservative to Moderate";
+  else if (score >= 26 && score <= 34) profile = "Moderate";
+  else if (score >= 35 && score <= 42) profile = "Moderate to Aggressive";
+  else if (score >= 43 && score <= 50) profile = "Aggressive";
 
   // Set dropdown value and display result message
   document.getElementById("riskProfile").value = profile;
