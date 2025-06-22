@@ -260,19 +260,20 @@ function calculateRecommendation() {
 
   const fundTable = document.getElementById("fundTable");
   fundTable.innerHTML = "";
-  const sampleFunds = [
-    { name: "ABC Equity Fund", percent: "40", category: "Equity" },
-    { name: "XYZ Debt Fund", percent: "30", category: "Debt" },
-    { name: "LMN Hybrid Fund", percent: "30", category: "Hybrid" },
-  ];
-  sampleFunds.forEach(fund => {
-    const row = `<tr><td>${fund.name}</td><td>${fund.percent}</td><td>${fund.category}</td></tr>`;
-    fundTable.innerHTML += row;
-  });
+  // Load funds dynamically from Google Sheets based on risk profile
+  loadFundData(document.getElementById("riskProfile").value);
+  // const sampleFunds = [
+  //   { name: "ABC Equity Fund", percent: "40", category: "Equity" },
+  //   { name: "XYZ Debt Fund", percent: "30", category: "Debt" },
+  //   { name: "LMN Hybrid Fund", percent: "30", category: "Hybrid" },
+  // ];
+  // sampleFunds.forEach(fund => {
+  //   const row = `<tr><td>${fund.name}</td><td>${fund.percent}</td><td>${fund.category}</td></tr>`;
+  //   fundTable.innerHTML += row;
+  // });
 }
 
 function downloadPDF() {
-
   const original = document.getElementById("content");
 
   // Clone content to work with
@@ -286,15 +287,17 @@ function downloadPDF() {
     img.src = imgData;
     img.style.maxWidth = "100%";
     const cloneCanvas = clone.querySelector("#pieChart");
-    cloneCanvas.replaceWith(img);
+    if (cloneCanvas && cloneCanvas.parentNode) {
+      cloneCanvas.parentNode.replaceChild(img, cloneCanvas);
+    }
   }
 
   // Create a temporary container to hold the clone
   const tempDiv = document.createElement("div");
-  tempDiv.style.position = "fixed";
-  tempDiv.style.top = "-9999px";
-  tempDiv.appendChild(clone);
+  tempDiv.style.position = "absolute";
+  tempDiv.style.left = "-9999px";
   document.body.appendChild(tempDiv);
+  tempDiv.appendChild(clone);
 
   setTimeout(() => {
     html2pdf().set({
@@ -306,8 +309,7 @@ function downloadPDF() {
     }).from(clone).save().then(() => {
       document.body.removeChild(tempDiv); // clean up
     });
-  }, 100);
-
+  }, 300);
 }
 function submitQuestionnaire() {
   const form = document.getElementById("questionnaireForm");
@@ -329,6 +331,8 @@ function submitQuestionnaire() {
 
   // Set dropdown value and display result message
   document.getElementById("riskProfile").value = profile;
+  // Call loadFundData after setting risk profile
+  loadFundData(profile);
   const resultContainer = document.getElementById("riskProfileResult");
   resultContainer.innerHTML = `
     <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -337,7 +341,30 @@ function submitQuestionnaire() {
     </div>`;
 
   bootstrap.Modal.getInstance(document.getElementById("questionnaireModal")).hide();
-}</script>
+}
+
+function loadFundData(riskProfile) {
+  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSpwaHO-MZZnKm_vmkwxDSiEhhusTrvMlu4TR1rGgN4mEmR-iIg0GuoDYkrgHQmKHuR1Pjrtvnr0QXn/pub?gid=0&single=true&output=csv')
+    .then(res => res.text())
+    .then(csv => {
+      const workbook = XLSX.read(csv, { type: "string" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(sheet);
+
+      const fundTable = document.getElementById("fundTable");
+      fundTable.innerHTML = "";
+      const filtered = data.filter(row => row['Risk Profile']?.toLowerCase() === riskProfile.toLowerCase());
+      filtered.forEach(fund => {
+        const row = `<tr>
+          <td>${fund['Scheme Name']}</td>
+          <td>${fund['Allocation %']}</td>
+          <td>${fund['Category']}</td>
+        </tr>`;
+        fundTable.innerHTML += row;
+      });
+    });
+}
+</script>
 
 </body>
 </html>
