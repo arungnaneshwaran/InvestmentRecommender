@@ -272,17 +272,29 @@ function calculateRecommendation() {
 }
 
 function downloadPDF() {
-  const element = document.getElementById("content");
 
-  // Convert Chart.js canvas to image for consistent rendering
-  const canvas = document.getElementById("pieChart");
+  const original = document.getElementById("content");
+
+  // Clone content to work with
+  const clone = original.cloneNode(true);
+
+  // Replace canvas with image inside the clone
+  const canvas = original.querySelector("#pieChart");
   if (canvas) {
     const imgData = canvas.toDataURL("image/png");
     const img = document.createElement("img");
     img.src = imgData;
     img.style.maxWidth = "100%";
-    canvas.parentNode.replaceChild(img, canvas);
+    const cloneCanvas = clone.querySelector("#pieChart");
+    cloneCanvas.replaceWith(img);
   }
+
+  // Create a temporary container to hold the clone
+  const tempDiv = document.createElement("div");
+  tempDiv.style.position = "fixed";
+  tempDiv.style.top = "-9999px";
+  tempDiv.appendChild(clone);
+  document.body.appendChild(tempDiv);
 
   setTimeout(() => {
     html2pdf().set({
@@ -291,8 +303,11 @@ function downloadPDF() {
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    }).from(element).save();
+    }).from(clone).save().then(() => {
+      document.body.removeChild(tempDiv); // clean up
+    });
   }, 100);
+
 }
 function submitQuestionnaire() {
   const form = document.getElementById("questionnaireForm");
