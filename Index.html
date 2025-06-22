@@ -252,7 +252,7 @@ function submitQuestionnaire() {
   // Calculate total score by index of selected option (index + 1 = score)
   let score = 0;
   selects.forEach(select => {
-    score += select.selectedIndex + 1;
+    score += select.selectedIndex;
   });
 
   // Determine risk profile based on score
