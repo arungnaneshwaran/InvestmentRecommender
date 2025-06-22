@@ -273,7 +273,26 @@ function calculateRecommendation() {
 
 function downloadPDF() {
   const element = document.getElementById("content");
-  html2pdf().from(element).save("Investment_Recommendation.pdf");
+
+  // Convert Chart.js canvas to image for consistent rendering
+  const canvas = document.getElementById("pieChart");
+  if (canvas) {
+    const imgData = canvas.toDataURL("image/png");
+    const img = document.createElement("img");
+    img.src = imgData;
+    img.style.maxWidth = "100%";
+    canvas.parentNode.replaceChild(img, canvas);
+  }
+
+  setTimeout(() => {
+    html2pdf().set({
+      margin: 0.5,
+      filename: 'Investment_Recommendation.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }).from(element).save();
+  }, 100);
 }
 function submitQuestionnaire() {
   const form = document.getElementById("questionnaireForm");
