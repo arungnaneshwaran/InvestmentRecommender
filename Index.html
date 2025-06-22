@@ -68,6 +68,7 @@
         <option>Moderate to Aggressive</option>
         <option>Aggressive</option>
       </select>
+      <div id="riskProfileResult" class="mt-2"></div>
     </div>
     <div class="col-md-6">
       <label class="form-label">Investment Type</label>
@@ -230,7 +231,12 @@ function submitQuestionnaire() {
   else profile = "Aggressive";
 
   document.getElementById("riskProfile").value = profile;
-  alert("Your assessed risk profile is: " + profile);
+  const resultContainer = document.getElementById("riskProfileResult");
+  resultContainer.innerHTML = `
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+      Your assessed risk profile is: <strong>${profile}</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>`;
   bootstrap.Modal.getInstance(document.getElementById("questionnaireModal")).hide();
 }
 </script>
