@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Recommendation</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body { background: #f8f9fa; }
+    .container { max-width: 800px; margin-top: 30px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h2, h3 { text-align: center; margin-bottom: 20px; }
+    .form-label { margin-top: 10px; }
+    canvas { max-width: 100% !important; }
+    table { margin-top: 20px; }
+    .btn { margin-right: 10px; }
+    .logo {
+      width: 150px;
+      margin-bottom: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="content">
+  <img src="logo.jpeg" alt="Curate My Money Logo" class="logo">
+
+  <h2>Investment Recommendation Form</h2>
+
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Client Name</label>
+      <input type="text" id="clientName" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Age</label>
+      <input type="number" id="age" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">PAN</label>
+      <input type="text" id="pan" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">City</label>
+      <input type="text" id="city" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Objective</label>
+      <input type="text" id="objective" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Investment Duration (years)</label>
+      <input type="number" id="invDuration" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Risk Profile</label>
+      <span class="ms-2"><a href="#" data-bs-toggle="modal" data-bs-target="#questionnaireModal" style="font-size: 0.9em;">(Don't know? Click here)</a></span>
+      <select id="riskProfile" class="form-select">
+        <option>Conservative</option>
+        <option>Conservative to Moderate</option>
+        <option>Moderate</option>
+        <option>Moderate to Aggressive</option>
+        <option>Aggressive</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Investment Type</label>
+      <select id="invType" class="form-select">
+        <option>SIP</option>
+        <option>Lumpsum</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Investment Amount</label>
+      <input type="number" id="amount" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Assumed Rate of Return (%)</label>
+      <input type="number" id="rateOfReturn" class="form-control">
+    </div>
+  </div>
+
+  <div class="text-center mt-4">
+    <button onclick="calculateRecommendation()" class="btn btn-primary">Generate Recommendation</button>
+    <button onclick="downloadPDF()" class="btn btn-outline-secondary">Download as PDF</button>
+  </div>
+
+  <h3>Asset Allocation</h3>
+  <div class="d-flex justify-content-center">
+    <canvas id="pieChart" width="300" height="300"></canvas>
+  </div>
+
+  <h3>Recommended Funds</h3>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead class="table-light">
+        <tr><th>Scheme Name</th><th>Allocation %</th><th>Category</th></tr>
+      </thead>
+      <tbody id="fundTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="questionnaireModal" tabindex="-1" aria-labelledby="questionnaireModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="questionnaireModalLabel">Investor Questionnaire</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="questionnaireForm">
+          <div class="mb-3">
+            <label class="form-label">1. Investment Goal Horizon – When will you need most of this money?</label>
+            <select class="form-select"><option>&lt; 3 Yrs</option><option>3-5 Yrs</option><option>5-7 Yrs</option><option>7-10 Yrs</option><option>&gt;10 Yrs</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">2. Emergency Fund – How many months of living expenses are liquid and easily accessible?</label>
+            <select class="form-select"><option>None</option><option>1-3 mo</option><option>3-6 mo</option><option>6-12 mo</option><option>&gt;12 mo</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">3. Primary Investment Objective</label>
+            <select class="form-select"><option>Capital Protection</option><option>Income with minimal growth</option><option>Balanced growth & income</option><option>Growth with some income</option><option>Aggressive growth</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">4. Market Downturn Reaction – If your portfolio fell 15 % in a month, you would…</label>
+            <select class="form-select"><option>Sell everything</option><option>Sell part and move to safety</option><option>Stay invested</option><option>Buy a little more</option><option>Invest aggressively</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">5. Knowledge & Experience – How familiar are you with equity and bond markets?</label>
+            <select class="form-select"><option>None</option><option>Basic</option><option>Moderate</option><option>Experienced</option><option>Professional/Expert</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">6. Income Stability</label>
+            <select class="form-select"><option>Very uncertain</option><option>Somewhat uncertain</option><option>Stable salary/income</option><option>Stable + Incentive</option><option>Highly stable + surplus</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">7. Dependants & Obligations</label>
+            <select class="form-select"><option>Many dependants, High EMIs</option><option>Many dependants, Low EMIs</option><option>Few dependants, moderate EMIs</option><option>Few dependants, low EMIs</option><option>No dependants, no EMIs</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">8. Comfort With Volatility – Annual return swing you can tolerate?</label>
+            <select class="form-select"><option>± 5 %</option><option>± 10 %</option><option>± 15 %</option><option>± 20 %</option><option>± 25 %</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">9. Past Investing Behaviour – In previous corrections you…</label>
+            <select class="form-select"><option>Always exited</option><option>Often exited</option><option>Held on</option><option>Added a bit</option><option>Added a lot</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">10. Return Expectation (10 yr CAGR)</label>
+            <select class="form-select"><option>≤ 5 %</option><option>6-8%</option><option>9-11%</option><option>12-14%</option><option>≥ 15 %</option></select>
+          </div>
+          <div class="text-end">
+            <button type="button" class="btn btn-primary" onclick="submitQuestionnaire()">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function calculateRecommendation() {
+  const type = document.getElementById("invType").value;
+  const amount = parseFloat(document.getElementById("amount").value);
+  const duration = parseInt(document.getElementById("invDuration").value);
+  const rate = parseFloat(document.getElementById("rateOfReturn").value) / 100;
+
+  let sip = 0, lumpsum = 0;
+  if (type === "SIP") {
+    sip = (amount * (((Math.pow(1 + rate / 12, 12 * duration)) - 1) * (1 + rate / 12)) / (rate / 12)).toFixed(2);
+    alert("Future Value (SIP): ₹" + sip);
+  } else {
+    lumpsum = (amount * Math.pow((1 + rate), duration)).toFixed(2);
+    alert("Future Value (Lumpsum): ₹" + lumpsum);
+  }
+
+  const equity = 60, debt = 30, hybrid = 10;
+  const data = [equity, debt, hybrid];
+  const ctx = document.getElementById("pieChart").getContext("2d");
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Equity', 'Debt', 'Hybrid'],
+      datasets: [{ data: data, backgroundColor: ['#36A2EB', '#FFCE56', '#FF6384'] }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  const fundTable = document.getElementById("fundTable");
+  fundTable.innerHTML = "";
+  const sampleFunds = [
+    { name: "ABC Equity Fund", percent: "40", category: "Equity" },
+    { name: "XYZ Debt Fund", percent: "30", category: "Debt" },
+    { name: "LMN Hybrid Fund", percent: "30", category: "Hybrid" },
+  ];
+  sampleFunds.forEach(fund => {
+    const row = `<tr><td>${fund.name}</td><td>${fund.percent}</td><td>${fund.category}</td></tr>`;
+    fundTable.innerHTML += row;
+  });
+}
+
+function downloadPDF() {
+  const element = document.getElementById("content");
+  html2pdf().from(element).save("Investment_Recommendation.pdf");
+}
+function submitQuestionnaire() {
+  const form = document.getElementById("questionnaireForm");
+  const responses = Array.from(form.querySelectorAll("select")).map(select => select.value);
+  
+  // Basic example scoring logic (you can refine this later)
+  const score = responses.reduce((sum, val) => {
+    const idx = form.querySelectorAll("select")[0].options.namedItem(val)?.index || 0;
+    return sum + idx;
+  }, 0);
+
+  let profile = "";
+  if (score <= 12) profile = "Conservative";
+  else if (score <= 18) profile = "Conservative to Moderate";
+  else if (score <= 25) profile = "Moderate";
+  else if (score <= 32) profile = "Moderate to Aggressive";
+  else profile = "Aggressive";
+
+  document.getElementById("riskProfile").value = profile;
+  alert("Your assessed risk profile is: " + profile);
+  bootstrap.Modal.getInstance(document.getElementById("questionnaireModal")).hide();
+}
+</script>
+
+</body>
+</html>
